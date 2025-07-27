@@ -1,81 +1,111 @@
 <?php
 /**
- * Plugin Name: BD Domain Checker Advanced
- * Description: Advanced BD (.bd & .বাংলা) Domain Availability Checker with Dashboard Control
+ * Plugin Name: BD Domain Checker
+ * Description: Simple BD (.bd & .বাংলা) Domain Availability Checker with AJAX.
  * Version: 2.0
  * Author: DOT.COM.BD
  */
 
 if (!defined('ABSPATH')) exit;
 
-// ✅ Constants
-define('BDC_ADV_PATH', plugin_dir_path(__FILE__));
-define('BDC_ADV_URL', plugin_dir_url(__FILE__));
+/**
+ * ✅ AJAX Handler: ডোমেইন অ্যাভেইলেবল কিনা চেক করবে এবং JSON list রিটার্ন করবে
+ */
+function bd_domain_checker_ajax() {
+    if (!isset($_POST['domain'])) {
+        wp_send_json_error(['message' => '❌ No domain received']);
+    }
 
-// ✅ Load required file
-require_once BDC_ADV_PATH . 'includes/ajax-handler.php';
+    $domain = sanitize_text_field($_POST['domain']);
+    $clean_domain = preg_replace('/^https?:\/\//', '', $domain);
+    $clean_domain = preg_replace('/^www\./', '', $clean_domain);
 
-// ✅ Activation hook
-register_activation_hook(__FILE__, 'bdc_adv_activate');
-function bdc_adv_activate(){
-    global $wpdb;
-    $table = $wpdb->prefix . 'bd_checker_logs';
-    $charset = $wpdb->get_charset_collate();
+    // বেস নাম বের করি (example)
+    $base_name = preg_replace('/\..*$/', '', $clean_domain);
 
-    $sql = "CREATE TABLE IF NOT EXISTS $table (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        domain_name VARCHAR(255) NOT NULL,
-        ip_address VARCHAR(50),
-        checked_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) $charset;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-
-    // Default Settings
-    $default_ext = [
-        ['ext'=>'.com.bd','price'=>800,'enabled'=>true],
-        ['ext'=>'.net.bd','price'=>700,'enabled'=>true],
-        ['ext'=>'.org.bd','price'=>700,'enabled'=>true],
-        ['ext'=>'.বাংলা','price'=>1000,'enabled'=>true]
+    // সব এক্সটেনশন
+    $extensions = [
+        '.com.bd', '.edu.bd', '.gov.bd', '.net.bd',
+        '.org.bd', '.ac.bd', '.mil.bd', '.info.bd', '.বাংলা'
     ];
-    if(!get_option('bdc_adv_extensions')) add_option('bdc_adv_extensions', $default_ext);
-    if(!get_option('bdc_adv_welcome')) add_option('bdc_adv_welcome','Welcome to BD Domain Checker!');
-    if(!get_option('bdc_adv_available_msg')) add_option('bdc_adv_available_msg','✅ {domain} is available for {price} BDT/year');
-    if(!get_option('bdc_adv_taken_msg')) add_option('bdc_adv_taken_msg','❌ {domain} is already registered');
+
+    $results = [];
+
+    foreach($extensions as $ext){
+        $check_domain = $base_name.$ext;
+
+        // ✅ DNS Lookup
+        $has_records = false;
+        if (function_exists('dns_get_record')) {
+            $records = @dns_get_record($check_domain, DNS_A + DNS_AAAA + DNS_CNAME);
+            if ($records && count($records) > 0) {
+                $has_records = true;
+            }
+        }
+        if (!$has_records && function_exists('checkdnsrr')) {
+            if (checkdnsrr($check_domain, "A") || checkdnsrr($check_domain, "MX")) {
+                $has_records = true;
+            }
+        }
+
+        // ✅ Available true হলে রেজিস্টার হয়নি
+        $results[] = [
+            'domain'    => $check_domain,
+            'available' => !$has_records,
+            'price'     => 800 // এখানে Future-এ Dashboard থেকে কন্ট্রোল করতে পারবেন
+        ];
+    }
+
+    wp_send_json_success(['list' => $results]);
 }
+add_action('wp_ajax_bd_domain_checker', 'bd_domain_checker_ajax');
+add_action('wp_ajax_nopriv_bd_domain_checker', 'bd_domain_checker_ajax');
 
-// ✅ Admin Menu
-add_action('admin_menu', function(){
-    add_menu_page(
-        'BD Domain Checker',
-        'BD Domain Checker',
-        'manage_options',
-        'bdc-advanced',
-        'bdc_adv_admin_page',
-        'dashicons-search',
-        30
-    );
-});
+/**
+ * ✅ শর্টকোড - ফ্রন্টএন্ডে ফর্ম দেখাবে
+ */
+function bd_domain_checker_shortcode() {
+    ob_start(); ?>
+    
+    <div class="bd-domain-checker-wrapper">
+        <h2 class="bd-domain-title">BD Domain Checker</h2>
+        
+        <div class="bd-domain-form">
+            <input type="text" id="bd-domain-input" placeholder="Enter domain name">
+            <select id="bd-domain-ext">
+                <option value=".com.bd">.com.bd</option>
+                <option value=".edu.bd">.edu.bd</option>
+                <option value=".gov.bd">.gov.bd</option>
+                <option value=".net.bd">.net.bd</option>
+                <option value=".org.bd">.org.bd</option>
+                <option value=".ac.bd">.ac.bd</option>
+                <option value=".mil.bd">.mil.bd</option>
+                <option value=".info.bd">.info.bd</option>
+                <option value=".বাংলা">.বাংলা</option>
+            </select>
+            <button id="bd-domain-submit">Search</button>
+        </div>
+        
+        <div id="bd-domain-result"></div>
 
-// ✅ Admin Page
-function bdc_adv_admin_page(){
-    require_once BDC_ADV_PATH . 'admin/settings-page.php';
+        <p class="bd-domain-welcome">
+            Welcome to the World of <span class="bangla">.বাংলা</span> & <span class="bd">.bd</span> Domain Service
+        </p>
+    </div>
+
+    <?php return ob_get_clean();
 }
+add_shortcode('bd_domain_checker', 'bd_domain_checker_shortcode');
 
-// ✅ Frontend Assets
-add_action('wp_enqueue_scripts', function(){
-    wp_enqueue_style('bdc-adv-style', BDC_ADV_URL.'assets/css/style.css');
-    wp_enqueue_script('bdc-adv-js', BDC_ADV_URL.'assets/js/checker.js', ['jquery'], false, true);
-    wp_localize_script('bdc-adv-js','bdcAjax',[
-        'ajaxurl'=>admin_url('admin-ajax.php'),
-        'nonce'=>wp_create_nonce('bdc_adv_nonce')
+/**
+ * ✅ CSS + JS লোড করা
+ */
+function bd_checker_assets() {
+    wp_enqueue_style('bd-checker-style', plugin_dir_url(__FILE__).'style.css');
+    wp_enqueue_script('bd-checker-js', plugin_dir_url(__FILE__).'checker.js', ['jquery'], '2.0', true);
+    wp_localize_script('bd-checker-js', 'bdAjax', [
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce'   => wp_create_nonce('bd_checker_nonce')
     ]);
-});
-
-// ✅ Frontend Shortcode
-add_shortcode('bd_domain_checker_advanced', function(){
-    ob_start();
-    include BDC_ADV_PATH.'templates/form-layout.php';
-    return ob_get_clean();
-});
+}
+add_action('wp_enqueue_scripts', 'bd_checker_assets');
