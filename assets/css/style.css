@@ -1,4 +1,4 @@
-/* ===== Wrapper ===== */
+/* ===== Wrapper (BTCL Style) ===== */
 .bd-domain-checker-wrapper {
   max-width: 650px;
   margin: 30px auto;
@@ -55,77 +55,58 @@
   cursor: pointer;
   transition: 0.2s;
 }
-#bd-domain-submit:hover { background: #004c99; }
+#bd-domain-submit:hover {
+  background: #004c99;
+}
 
 /* ===== Result box ===== */
 #bd-domain-result {
   margin-top: 15px;
-}
-
-/* === Domain Result Card (Compact 2-line) === */
-.domain-card.compact {
-  background: #fff;
-  border: 1px solid #eee;
-  padding: 12px 15px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  font-family: Arial, sans-serif;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* === Top Row: Domain + Status === */
-.domain-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.domain-name {
+  padding: 10px;
   font-size: 16px;
-  font-weight: 600;
-  color: #222;
-}
-.status.avail { color: #007E33; font-weight: bold; }
-.status.taken { color: #CC0000; font-weight: bold; }
-
-/* === Bottom Row: Price + Buy Button === */
-.domain-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.domain-price {
-  font-size: 15px;
   font-weight: bold;
-  color: #007E33;
-}
-.domain-action .buy-btn {
-  display: inline-block;
-  padding: 6px 18px;
-  background: #0073aa;
-  color: #fff;
-  text-decoration: none;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  font-weight: bold;
-  transition: 0.2s;
-}
-.domain-action .buy-btn:hover { background: #005f88; }
-.domain-action .buy-btn.disabled {
-  background: #ccc;
-  cursor: not-allowed;
+  background: #fefefe;
+  text-align: center;
 }
 
-/* ✅ মোবাইলেও একই দুই কলাম লেআউট থাকবে */
-@media(max-width:600px){
-  .domain-top,
-  .domain-bottom {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+#bd-domain-result .avail {
+  color: #007E33 !important;
+}
+#bd-domain-result .not-avail {
+  color: #CC0000 !important;
+}
+
+/* Other Extensions list */
+.bd-ext-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+  text-align: left;
+}
+.bd-ext-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* Welcome text */
+.bd-domain-welcome {
+  margin-top: 10px;
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .bd-domain-form {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .domain-action .buy-btn {
-    padding: 8px 20px;
+  .bd-domain-form input,
+  .bd-domain-form select,
+  #bd-domain-submit {
+    width: 100%;
   }
 }
