@@ -2,14 +2,14 @@
 /**
  * Plugin Name: BD Domain Checker
  * Description: Simple BD (.bd & .বাংলা) Domain Availability Checker with AJAX.
- * Version: 2.0
+ * Version: 1.1
  * Author: DOT.COM.BD
  */
 
 if (!defined('ABSPATH')) exit;
 
 /**
- * ✅ AJAX Handler: ডোমেইন অ্যাভেইলেবল কিনা চেক করবে এবং JSON list রিটার্ন করবে
+ * ✅ AJAX Handler: ডোমেইন অ্যাভেইলেবল কিনা চেক করবে + বাকি এক্সটেনশনও দেখাবে
  */
 function bd_domain_checker_ajax() {
     if (!isset($_POST['domain'])) {
@@ -20,43 +20,63 @@ function bd_domain_checker_ajax() {
     $clean_domain = preg_replace('/^https?:\/\//', '', $domain);
     $clean_domain = preg_replace('/^www\./', '', $clean_domain);
 
-    // বেস নাম বের করি (example)
-    $base_name = preg_replace('/\..*$/', '', $clean_domain);
+    // ✅ প্রথমে সিলেক্ট করা ডোমেইন চেক
+    $has_records = false;
+    if (function_exists('dns_get_record')) {
+        $records = @dns_get_record($clean_domain, DNS_A + DNS_AAAA + DNS_CNAME);
+        if ($records && count($records) > 0) {
+            $has_records = true;
+        }
+    }
+    if (!$has_records && function_exists('checkdnsrr')) {
+        if (checkdnsrr($clean_domain, "A") || checkdnsrr($clean_domain, "MX")) {
+            $has_records = true;
+        }
+    }
 
-    // সব এক্সটেনশন
+    $main_result = $has_records 
+        ? "❌ Domain <strong>{$domain}</strong> is <span style='color:red;'>NOT available</span>" 
+        : "✅ Domain <strong>{$domain}</strong> is <span style='color:green;'>AVAILABLE</span>";
+
+    // ✅ এবার বাকি সব এক্সটেনশন চেক
     $extensions = [
-        '.com.bd', '.edu.bd', '.gov.bd', '.net.bd',
+        '.com.bd', '.edu.bd', '.gov.bd', '.net.bd', 
         '.org.bd', '.ac.bd', '.mil.bd', '.info.bd', '.বাংলা'
     ];
 
-    $results = [];
+    // বর্তমান চেক করা এক্সটেনশন বাদ দিন
+    $current_ext = substr($domain, strpos($domain, '.'));
+    $other_exts = array_diff($extensions, [$current_ext]);
 
-    foreach($extensions as $ext){
-        $check_domain = $base_name.$ext;
+    $list_html = "<div style='margin-top:12px;'><strong>Other Extensions:</strong><ul class='bd-ext-list'>";
+    foreach ($other_exts as $ext) {
+        $check_domain = preg_replace('/\..*$/', '', $domain) . $ext;
+        $check_has = false;
 
-        // ✅ DNS Lookup
-        $has_records = false;
         if (function_exists('dns_get_record')) {
-            $records = @dns_get_record($check_domain, DNS_A + DNS_AAAA + DNS_CNAME);
-            if ($records && count($records) > 0) {
-                $has_records = true;
+            $rec = @dns_get_record($check_domain, DNS_A + DNS_AAAA + DNS_CNAME);
+            if ($rec && count($rec) > 0) {
+                $check_has = true;
             }
         }
-        if (!$has_records && function_exists('checkdnsrr')) {
+        if (!$check_has && function_exists('checkdnsrr')) {
             if (checkdnsrr($check_domain, "A") || checkdnsrr($check_domain, "MX")) {
-                $has_records = true;
+                $check_has = true;
             }
         }
 
-        // ✅ Available true হলে রেজিস্টার হয়নি
-        $results[] = [
-            'domain'    => $check_domain,
-            'available' => !$has_records,
-            'price'     => 800 // এখানে Future-এ Dashboard থেকে কন্ট্রোল করতে পারবেন
-        ];
-    }
+        $status = $check_has 
+            ? "<span class='not-avail'>❌ Not Available</span>" 
+            : "<span class='avail'>✅ Available</span>";
 
-    wp_send_json_success(['list' => $results]);
+        $list_html .= "<li><strong>{$check_domain}</strong> - {$status}</li>";
+    }
+    $list_html .= "</ul></div>";
+
+    // ✅ মেইন রেজাল্ট + বাকি এক্সটেনশন লিস্ট একসাথে পাঠানো হবে
+    wp_send_json_success([
+        'message' => $main_result . $list_html
+    ]);
 }
 add_action('wp_ajax_bd_domain_checker', 'bd_domain_checker_ajax');
 add_action('wp_ajax_nopriv_bd_domain_checker', 'bd_domain_checker_ajax');
@@ -87,7 +107,6 @@ function bd_domain_checker_shortcode() {
         </div>
         
         <div id="bd-domain-result"></div>
-
         <p class="bd-domain-welcome">
             Welcome to the World of <span class="bangla">.বাংলা</span> & <span class="bd">.bd</span> Domain Service
         </p>
@@ -102,7 +121,7 @@ add_shortcode('bd_domain_checker', 'bd_domain_checker_shortcode');
  */
 function bd_checker_assets() {
     wp_enqueue_style('bd-checker-style', plugin_dir_url(__FILE__).'style.css');
-    wp_enqueue_script('bd-checker-js', plugin_dir_url(__FILE__).'checker.js', ['jquery'], '2.0', true);
+    wp_enqueue_script('bd-checker-js', plugin_dir_url(__FILE__).'checker.js', ['jquery'], '1.1', true);
     wp_localize_script('bd-checker-js', 'bdAjax', [
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce'   => wp_create_nonce('bd_checker_nonce')
