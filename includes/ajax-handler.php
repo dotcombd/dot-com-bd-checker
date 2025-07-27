@@ -1,57 +1,48 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-add_action('wp_ajax_bdc_adv_check','bdc_adv_check');
-add_action('wp_ajax_nopriv_bdc_adv_check','bdc_adv_check');
+add_action('wp_ajax_bdc_check_domain', 'bdc_check_domain');
+add_action('wp_ajax_nopriv_bdc_check_domain', 'bdc_check_domain');
 
-function bdc_adv_check(){
-    check_ajax_referer('bdc_adv_nonce','security');
+function bdc_check_domain(){
+    check_ajax_referer('bdc_adv_nonce', 'security');
 
-    $name = sanitize_text_field($_POST['name']??'');
-    if(!$name) wp_send_json_error(['msg'=>'❌ No domain name!']);
-
-    $exts = get_option('bdc_adv_extensions',[]);
-    $avail_msg = get_option('bdc_adv_available_msg');
-    $taken_msg = get_option('bdc_adv_taken_msg');
-
-    $results=[];
-    foreach($exts as $ext){
-        if(!$ext['enabled']) continue;
-        $domain=$name.$ext['ext'];
-
-        // DNS Lookup
-        $taken=false;
-        if(function_exists('dns_get_record')){
-            $r=@dns_get_record($domain,DNS_A+DNS_AAAA+DNS_CNAME+DNS_MX);
-            if($r && count($r)>0) $taken=true;
-        }
-        if(!$taken && function_exists('checkdnsrr')){
-            if(checkdnsrr($domain,"A")||checkdnsrr($domain,"MX")) $taken=true;
-        }
-
-        if($taken){
-            $msg=str_replace('{domain}',$domain,$taken_msg);
-        }else{
-            $msg=str_replace(
-                ['{domain}','{price}'],
-                [$domain,$ext['price']],
-                $avail_msg
-            );
-        }
-
-        $results[]=[
-            'domain'=>$domain,
-            'status'=>$taken?'taken':'available',
-            'message'=>$msg
-        ];
+    $name = sanitize_text_field($_POST['name'] ?? '');
+    if(!$name){
+        wp_send_json_error(['message'=>'❌ Please enter a domain name']);
     }
 
-    // Save log
-    global $wpdb;
-    $wpdb->insert($wpdb->prefix.'bd_checker_logs',[
-        'domain_name'=>$name,
-        'ip_address'=>$_SERVER['REMOTE_ADDR']
+    // এক্সটেনশন সেটিংস থেকে প্রাইস নেবে
+    $ext_settings = get_option('bdc_adv_extensions', [
+        ['ext'=>'.com.bd','price'=>800,'enabled'=>true],
+        ['ext'=>'.net.bd','price'=>700,'enabled'=>true],
+        ['ext'=>'.org.bd','price'=>700,'enabled'=>true],
+        ['ext'=>'.বাংলা','price'=>1000,'enabled'=>true]
     ]);
+
+    $results = [];
+    foreach($ext_settings as $ext_data){
+        if(!$ext_data['enabled']) continue;
+
+        $ext = $ext_data['ext'];
+        $price = $ext_data['price'];
+        $domain = $name.$ext;
+
+        $has_records = false;
+        if(function_exists('dns_get_record')){
+            $records = @dns_get_record($domain, DNS_A + DNS_AAAA + DNS_CNAME + DNS_MX);
+            if($records && count($records)>0) $has_records = true;
+        }
+        if(!$has_records && function_exists('checkdnsrr')){
+            if(checkdnsrr($domain,"A")||checkdnsrr($domain,"MX")) $has_records = true;
+        }
+
+        $results[] = [
+            'domain'=>$domain,
+            'available'=> !$has_records,
+            'price'=>$price
+        ];
+    }
 
     wp_send_json_success(['results'=>$results]);
 }
