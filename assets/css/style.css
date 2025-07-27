@@ -1,72 +1,131 @@
-.domain-card {
+/* ===== Wrapper ===== */
+.bd-domain-checker-wrapper {
+  max-width: 650px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+}
+
+.bd-domain-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #003366;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* ===== Form Section ===== */
+.bd-domain-form {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.bd-domain-form input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.bd-domain-form select {
+  min-width: 140px;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+/* Search button */
+#bd-domain-submit {
+  background: #0066cc;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#bd-domain-submit:hover { background: #004c99; }
+
+/* ===== Result box ===== */
+#bd-domain-result {
+  margin-top: 15px;
+}
+
+/* === Domain Result Card (Compact 2-line) === */
+.domain-card.compact {
   background: #fff;
   border: 1px solid #eee;
   padding: 12px 15px;
   margin-bottom: 10px;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  font-family: Arial, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.domain-left {
+/* === Top Row: Domain + Status === */
+.domain-top {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
-
 .domain-name {
   font-size: 16px;
   font-weight: 600;
   color: #222;
 }
-
-.domain-meta {
-  font-size: 14px;
-  color: #666;
-}
-
-.domain-price {
-  color: #007E33;
-  font-weight: bold;
-  margin-right: 10px;
-}
 .status.avail { color: #007E33; font-weight: bold; }
 .status.taken { color: #CC0000; font-weight: bold; }
 
-/* Right side Buy Button */
-.domain-right {
-  flex-shrink: 0;
+/* === Bottom Row: Price + Buy Button === */
+.domain-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.buy-btn {
+.domain-price {
+  font-size: 15px;
+  font-weight: bold;
+  color: #007E33;
+}
+.domain-action .buy-btn {
   display: inline-block;
-  padding: 8px 18px;
+  padding: 6px 18px;
   background: #0073aa;
   color: #fff;
   text-decoration: none;
-  font-weight: bold;
   border-radius: 4px;
-  transition: 0.3s;
+  font-weight: bold;
+  transition: 0.2s;
 }
-.buy-btn:hover { background: #005f88; }
-.buy-btn.disabled {
+.domain-action .buy-btn:hover { background: #005f88; }
+.domain-action .buy-btn.disabled {
   background: #ccc;
   cursor: not-allowed;
 }
 
-/* Responsive Fix */
-@media (max-width: 600px) {
-  .domain-card {
-    flex-direction: column;
-    align-items: flex-start;
+/* ✅ মোবাইলেও একই দুই কলাম লেআউট থাকবে */
+@media(max-width:600px){
+  .domain-top,
+  .domain-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
-  .domain-right {
-    margin-top: 10px;
-    width: 100%;
-  }
-  .buy-btn {
-    width: 100%;
-    text-align: center;
+  .domain-action .buy-btn {
+    padding: 8px 20px;
   }
 }
