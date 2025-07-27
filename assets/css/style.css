@@ -1,0 +1,9 @@
+.bdc-wrapper{max-width:600px;margin:20px auto;padding:20px;background:#fff;border:1px solid #ddd;border-radius:6px;text-align:center;}
+.bdc-form{display:flex;gap:10px;justify-content:center;margin-bottom:15px;}
+.bdc-form input{flex:1;padding:10px;font-size:16px;border:1px solid #ccc;border-radius:4px;}
+.bdc-form button{padding:10px 20px;background:#0073aa;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+.bdc-form button:hover{background:#005d8c;}
+#bdc-domain-result ul{list-style:none;padding:0;}
+#bdc-domain-result li{padding:8px;border-bottom:1px solid #eee;}
+.avail{color:green;font-weight:bold;}
+.taken{color:red;font-weight:bold;}
