@@ -1,29 +1,41 @@
 jQuery(document).ready(function($){
-    $('#bd-domain-submit').on('click', function(){
-        let domainName = $('#bd-domain-input').val().trim();
-        let ext = $('#bd-domain-ext').val();
-        let fullDomain = domainName + ext;
+  $('#bdc-submit').on('click', function(){
+    let domainName = $('#bdc-input').val().trim();
 
-        if(domainName === ''){
-            $('#bd-domain-result').html('❌ Please enter a domain name');
-            return;
-        }
+    if(domainName===''){
+      $('#bdc-result').html('❌ Please enter a domain name');
+      return;
+    }
 
-        $('#bd-domain-result').html('⏳ Checking...');
+    $('#bdc-result').html('⏳ Checking...');
 
-        $.post(bdAjax.ajaxurl, {
-            action: 'bd_domain_checker',
-            domain: fullDomain,
-            security: bdAjax.nonce
-        }, function(response){
-            if(response.success){
-                $('#bd-domain-result').html(response.data.message);
-            } else {
-                $('#bd-domain-result').html('⚠️ Server returned error');
-            }
-        }).fail(function(xhr, status, error){
-            console.error("❌ AJAX Error:", status, error);
-            $('#bd-domain-result').html('⚠️ AJAX Failed. See console.');
+    $.post(bdAjax.ajaxurl,{
+      action:'bdc_check_domain',
+      name:domainName,
+      security:bdAjax.nonce
+    },function(response){
+      if(response.success){
+        let html='';
+        response.data.results.forEach(function(item){
+          html+=`
+            <div class="bdc-result-box ${item.available?'avail':'not-avail'}">
+              <div class="bdc-left">
+                <strong>${item.domain}</strong><br>
+                ${item.status}
+              </div>
+              <div class="bdc-right">
+                <span class="price">${item.price} BDT/yr</span>
+                <a href="#" class="buy-btn">Buy Now</a>
+              </div>
+            </div>
+          `;
         });
+        $('#bdc-result').html(html);
+      }else{
+        $('#bdc-result').html('⚠️ Error!');
+      }
+    }).fail(function(){
+      $('#bdc-result').html('⚠️ AJAX Failed');
     });
+  });
 });
