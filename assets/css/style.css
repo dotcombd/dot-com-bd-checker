@@ -1,112 +1,28 @@
-/* ===== Wrapper (BTCL Style) ===== */
-.bd-domain-checker-wrapper {
-  max-width: 650px;
-  margin: 30px auto;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: left;
+.bdc-wrapper{
+  max-width:700px;margin:20px auto;padding:20px;background:#fff;
+  border:1px solid #ddd;border-radius:6px;font-family:Arial,Helvetica,sans-serif;
 }
-
-.bd-domain-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #003366;
-  margin-bottom: 15px;
-  text-align: center;
+.bdc-title{text-align:center;font-size:22px;margin-bottom:15px;}
+.bdc-form{display:flex;gap:10px;flex-wrap:nowrap;}
+.bdc-form input{flex:1;padding:10px;font-size:16px;border:1px solid #ccc;border-radius:4px;}
+.bdc-form button{background:#0073aa;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;}
+.bdc-form button:hover{background:#005f8c;}
+#bdc-result{margin-top:20px;}
+.bdc-result-box{
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px solid #eee;border-radius:4px;padding:10px;margin-bottom:10px;
+  background:#f9f9f9;
 }
-
-/* ===== Form Section ===== */
-.bd-domain-form {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;
-}
-
-.bd-domain-form input {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.bd-domain-form select {
-  min-width: 140px;
-  padding: 10px;
-  font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #f9f9f9;
-}
-
-/* Search button */
-#bd-domain-submit {
-  background: #0066cc;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  font-size: 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-#bd-domain-submit:hover {
-  background: #004c99;
-}
-
-/* ===== Result box ===== */
-#bd-domain-result {
-  margin-top: 15px;
-  padding: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fefefe;
-  text-align: center;
-}
-
-#bd-domain-result .avail {
-  color: #007E33 !important;
-}
-#bd-domain-result .not-avail {
-  color: #CC0000 !important;
-}
-
-/* Other Extensions list */
-.bd-ext-list {
-  list-style: none;
-  padding-left: 0;
-  margin-top: 10px;
-  text-align: left;
-}
-.bd-ext-list li {
-  padding: 6px 0;
-  border-bottom: 1px solid #eee;
-}
-
-/* Welcome text */
-.bd-domain-welcome {
-  margin-top: 10px;
-  text-align: center;
-  color: #555;
-  font-size: 14px;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .bd-domain-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .bd-domain-form input,
-  .bd-domain-form select,
-  #bd-domain-submit {
-    width: 100%;
-  }
+.bdc-left{font-size:16px;}
+.bdc-right{text-align:right;}
+.bdc-right .price{font-weight:bold;display:block;margin-bottom:5px;color:#333;}
+.buy-btn{background:#28a745;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;}
+.buy-btn:hover{background:#218838;}
+.avail{border-left:4px solid #28a745;}
+.not-avail{border-left:4px solid #dc3545;}
+@media(max-width:600px){
+  .bdc-result-box{flex-direction:column;align-items:flex-start;}
+  .bdc-right{text-align:left;margin-top:5px;}
+  .bdc-form{flex-direction:column;}
+  .bdc-form button{width:100%;}
 }
